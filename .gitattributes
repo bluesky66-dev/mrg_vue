@@ -1,0 +1,12 @@
+public/js/** -diff merge=ours
+public/css/** -diff merge=ours
+public/fonts/** -diff merge=ours
+public/mix-manifest.json -diff merge=ours
+public/messages.js -diff merge=ours
+resources/lang  -diff merge=ours
+* text=auto
+*.css linguist-vendored
+*.scss linguist-vendored
+*.js linguist-vendored
+*.vue linguist-vendored
+CHANGELOG.md export-ignore

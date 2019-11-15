@@ -1,0 +1,85 @@
+{
+  "private": true,
+  "engines": {
+    "node": ">=8.4.0"
+  },
+  "resolutions": {
+    "js-beautify": "1.7.3"
+  },
+  "scripts": {
+    "dev": "npm run development",
+    "development": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "watch": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --watch --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "watch-poll": "npm run watch -- --watch-poll",
+    "hot": "cross-env NODE_ENV=development node_modules/webpack-dev-server/bin/webpack-dev-server.js --inline --hot --config=node_modules/laravel-mix/setup/webpack.config.js ",
+    "prod": "npm run production",
+    "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "cultures": "node dev-util/load-cultures.js && php artisan lang:js -c resources/assets/js/messages.js",
+    "eslint": "eslint \"resources/assets/js/**/*.{js,vue}\"",
+    "eslint-fix": "eslint --fix \"resources/assets/js/**/*.{js,vue}\"",
+    "html-format": "./node_modules/glob-run/bin/glob-run ./node_modules/js-beautify/js/bin/html-beautify.js -A force -r 'resources/assets/**/*.vue-template'",
+    "precommit": "lint-staged",
+    "clean": "rimraf \"resources/lang/*\" \"public/js/*\" \"public/css/*\" \"public/mix-manifest.json\" \"public/hot\" \"public/messages.js\" "
+  },
+  "lint-staged": {
+    "resources/assets/**/*.{js,vue}": [
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "devDependencies": {
+    "airtable": "^0.5.0",
+    "axios": "^0.16.2",
+    "babel-eslint": "^8.0.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-stage-2": "^6.24.1",
+    "bootstrap-sass": "^3.3.7",
+    "cross-env": "^5.0.5",
+    "es6-promise": "^4.1.1",
+    "eslint": "^4.7.2",
+    "eslint-config": "^0.3.0",
+    "eslint-config-recommended": "^1.5.0",
+    "eslint-plugin-prettier": "^2.3.1",
+    "eslint-plugin-script-tags": "^0.4.0",
+    "eslint-plugin-vue": "^3.13.0",
+    "fs-extra": "^4.0.2",
+    "glob-run": "^0.1.6",
+    "husky": "^0.14.3",
+    "imagemin-webpack-plugin": "^1.5.2",
+    "jquery": "^3.2.1",
+    "js-beautify": "^1.7.3",
+    "laravel-mix": "^1.4.5",
+    "lint-staged": "^4.2.3",
+    "lodash": "^4.17.4",
+    "moment": "^2.18.1",
+    "normalizr": "^3.2.3",
+    "php-unparser": "^0.2.1",
+    "pirate-speak": "^1.0.1",
+    "prettier": "^1.7.2",
+    "quasar-extras": "0.x",
+    "quasar-framework": "^0.14.3",
+    "query-string": "^5.0.0",
+    "rimraf": "^2.6.2",
+    "rxjs": "^5.4.3",
+    "vue": "^2.4.4",
+    "vue-analytics": "^5.1.1",
+    "vue-fuse": "^1.2.1",
+    "vue-i18n": "^7.3.0",
+    "vue-router": "^2.7.0",
+    "vue-template-loader": "^0.3.1",
+    "vuelidate": "^0.5.0",
+    "webpack-bundle-analyzer": "^2.9.0",
+    "d3-array": "^1.2.1",
+    "d3-axis": "^1.0.8",
+    "d3-scale": "^1.0.6",
+    "d3-selection": "^1.1.0",
+    "d3-shape": "^1.2.0",
+    "d3-time-format": "^2.1.0"
+  },
+  "dependencies": {
+    "object.entries": "^1.0.4",
+    "uuid": "^3.1.0",
+    "vue-tables-2": "^1.4.63"
+  }
+}

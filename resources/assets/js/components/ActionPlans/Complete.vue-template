@@ -1,0 +1,83 @@
+<div id="momentum-action-plan-complete"
+    :class="style['momentum-action-plan-complete']">
+    <h3>{{ $t('action_plan.complete.title') }}</h3>
+    <q-card class="with-hover">
+        <div class="hover-over-card-top-right">
+            <q-btn v-on:click.prevent="openHelp"
+                icon="help"
+                class=""
+                color="positive"
+                flat>
+                {{ $t('global.nav.get_help') }}
+            </q-btn>
+        </div>
+        <q-card-main class="column">
+            <q-card-main>
+                <q-card>
+                    <q-card-title>
+                        {{ this.action_plan.behavior.name_key_translated }}
+                    </q-card-title>
+                    <q-card-main>
+                        <p>{{ this.action_plan.behavior.report_text_key_translated }}</p>
+                    </q-card-main>
+                </q-card>
+                <p class="label">{{ $t('action_plan.complete.success.label')}}</p>
+                <q-field :error="$v.successes.$error"
+                    :error-label="successesErrorMsg"
+                    :count="config.max_char_length">
+                    <q-input type="textarea"
+                        v-model="successes"
+                        @input="successesDelayedTouch"
+                        :max-length="config.max_char_length" />
+                </q-field>
+                <p class="label">{{ $t('action_plan.complete.opportunity.label')}}</p>
+                <q-field :error="$v.failures.$error"
+                    :error-label="failuresErrorMsg"
+                    :count="config.max_char_length">
+                    <q-input type="textarea"
+                        v-model="failures"
+                        @input="failuresDelayedTouch"
+                        :max-length="config.max_char_length" />
+                </q-field>
+                <p class="label">{{ $t('action_plan.complete.nextup.label')}}</p>
+                <q-field :error="$v.next_focus.$error"
+                    :error-label="next_focusErrorMsg"
+                    :count="config.max_char_length">
+                    <q-input type="textarea"
+                        v-model="next_focus"
+                        @input="next_focusDelayedTouch"
+                        :max-length="config.max_char_length" />
+                </q-field>
+                <p class="label">{{ $t('action_plan.complete.helpful.label') }}</p>
+                <q-field :error="$v.helpful.$error"
+                    :error-label="helpfulErrorMsg">
+                    <q-option-group type="radio"
+                        color="secondary"
+                        v-model="helpful"
+                        :options="[
+                            { label: $t('action_plan.complete.helpful.yes'), value: '1' },
+                            { label: $t('action_plan.complete.helpful.no'), value: '0' },
+                        ]">
+                    </q-option-group>
+                </q-field>
+                <q-card-actions class="">
+                    <q-btn v-on:click="back"
+                        flat
+                        big>
+                        {{ $t('global.cta.back') }}
+                    </q-btn>
+                    <div style="flex:1 1 auto;"></div>
+                    <q-btn v-on:click="save"
+                        color="primary"
+                        big>
+                        {{ $t('action_plan.complete.button.label') }}
+                    </q-btn>
+                </q-card-actions>
+            </q-card-main>
+        </q-card-main>
+        <q-inner-loading :visible="inFlight">
+            <q-spinner size="50px"
+                color="primary" />
+        </q-inner-loading>
+    </q-card>
+</div>

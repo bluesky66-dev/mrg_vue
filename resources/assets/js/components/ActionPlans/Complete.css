@@ -1,0 +1,19 @@
+:local(.momentum-action-plan-complete) {
+    max-width: 700px;
+}
+
+:local(.momentum-action-plan-complete) .caption{
+    font-size: 16px;
+    margin-bottom: 0;
+}
+
+:local(.momentum-action-plan-complete) .label{
+    margin-top: 2em;
+    font-size: 16px;
+    margin-bottom: 0;
+}
+
+:local(.momentum-action-plan-complete) .label + .q-field{
+    margin-top: 0;
+}
+

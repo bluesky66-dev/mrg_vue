@@ -1,0 +1,37 @@
+# Dependencies
+/node_modules
+/vendor
+
+# Cached
+/storage/pdfs
+/public/images/organization-logos
+/storage/imports
+
+# Environment only
+/storage/*.key
+.env
+
+# Generated
+resources/lang/
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+composer.lock
+
+# Built assets
+/public/css
+/public/js
+/public/hot
+/public/storage
+/public/fonts
+/public/images
+mix-manifest.json
+
+# Misc
+/.idea
+/.vagrant
+/html
+.pki/
+.vscode/
+.DS_Store

@@ -1,0 +1,39 @@
+:local(.momentum-action-plans-edit) {
+  /* max-width: 800px; */
+}
+
+:local(.momentum-action-plans-edit) .q-stepper-step-inner{
+  padding-bottom: 10px;
+}
+
+:local(.momentum-action-plans-edit) .mark-complete .q-option-label{
+  text-transform: uppercase;
+  margin: 0.5em;
+  font-weight: bold;
+}
+
+
+:local(.momentum-action-plans-edit) .goals-step-label{
+  margin-top: 2em;
+  font-size: 16px;
+  margin-bottom: 0;
+}
+
+:local(.momentum-action-plans-edit) .goals-step-label + .q-field{
+  margin-top: 0;
+}
+
+:local(.momentum-action-plans-edit) .show-date{
+  text-transform: uppercase;
+  line-height: 2em;
+  font-weight: bold;
+  color:#9DA1A3;
+}
+
+:local(.momentum-action-plans-edit) .reminders{
+   /* height: 4em; */
+}
+.notVisible{
+  display:none;
+  visibility: hidden;
+}

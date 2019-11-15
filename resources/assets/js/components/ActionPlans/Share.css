@@ -1,0 +1,6 @@
+:local(.momentum-action-plan-share) {
+    max-width: 800px;
+}
+:local(.step-buttons) button:last-child{
+  float: right;
+}

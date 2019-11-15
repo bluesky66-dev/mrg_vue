@@ -1,0 +1,615 @@
+<div id="momentum-action-plans"
+    :class="style['momentum-action-plans-edit']">
+    <h3 v-if="mode === 'create'">{{ $t('action_plan.create.title') }}</h3>
+    <h3 v-if="mode === 'update'">{{ $t('action_plan.review.title') }}</h3>
+    <div class="with-hover">
+        <div class="hover-over-card-top-right">
+            <q-btn v-on:click.prevent="openHelp"
+                icon="help"
+                class=""
+                color="positive"
+                flat>
+                {{ $t('global.nav.get_help') }}
+            </q-btn>
+        </div>
+        <q-stepper flat
+            @step="onStep"
+            ref="stepper"
+            v-model="step"
+            color="primary">
+            <div class="row justify-end"
+                :style="{margin:'10px'}">
+                <q-btn v-on:click.prevent="open360results"
+                    icon="link"
+                    style=""
+                    class=""
+                    color="primary"
+                    flat>
+                    {{ $t('global.link.my_360_results') }}
+                </q-btn>
+                <q-btn v-on:click.prevent="openResourceGuide"
+                    icon="link"
+                    style=""
+                    class=""
+                    color="primary"
+                    flat>
+                    {{ $t('global.link.resource_guide') }}
+                </q-btn>
+            </div>
+            <!-- ### BEHAVIORS ### -->
+            <q-step default
+                name="behaviors"
+                :title="$t('action_plan.stepper.behaviors')">
+                <div class="row">
+                    <q-field class="col-6"
+                        style="margin-bottom: 2em;"
+                        :error="$v.behaviorsStep.behavior_ids.$error"
+                        :error-label="errorMsg.behaviorsStep.behavior_ids">
+                        <q-select v-model="behaviorsSelected"
+                            multiple
+                            :float-label="$t('action_plan.behaviors.picker.label')"
+                            :options="behaviorsSelectOptions"
+                            :disable="!behaviorEditable"
+                            v-on:change="$emit('change')">
+                            <h1 slot="left">Here might be a page title</h1>
+                        </q-select>
+                    </q-field>
+                    <!-- <q-field class="col-6"
+                        style="margin-bottom: 2em;">
+                        <q-select v-model="behaviorsSelected"
+                            multiple
+                            :float-label="$t('action_plan.behaviors.picker.label')"
+                            :options="behaviorsSelectOptions"
+                            :disable="!behaviorEditable"
+                            v-on:change="$emit('change')">
+                            <h1 slot="left">Here might be a page title</h1>
+                        </q-select>
+                    </q-field> -->
+                </div>
+                <div v-if="reportScoreExists">
+                    <q-tabs color="primary" v-model="selectedTab" align="justify">
+                        <!-- Tabs - notice slot="title" -->
+                        <q-tab slot="title"  :name="score.behavior.id.toString()" :label="$t(score.behavior.name_key)" v-for="(score, index) in reportScore"/>
+
+                        <!-- Targets -->
+                        <q-tab-pane :name="score.behavior.id.toString()" v-for="(score, index) in reportScore">
+                            <dot-plot v-bind:reportScore="score" />
+                        </q-tab-pane>
+                    </q-tabs>
+                </div>
+                <q-stepper-navigation>
+                    <q-btn flat
+                        v-on:click="behaviorsPreviousStep">
+                        {{ $t('global.cta.back') }}
+                    </q-btn>
+                    <div style="flex:1 1 auto;"></div>
+                    <q-btn v-if="mode === 'create'"
+                        loader
+                        v-on:click="saveAndFinishLater">
+                        <q-spinner slot="loading"
+                            class="on-left"></q-spinner>
+                        <span slot="loading">{{ $t('action_plan.cta.save_and_finish_later') }}</span> {{ $t('action_plan.cta.save_and_finish_later') }}
+                    </q-btn>
+                    <q-btn color="primary"
+                        v-on:click="behaviorsNextStep">
+                        {{ $t('global.cta.continue') }}
+                    </q-btn>
+                </q-stepper-navigation>
+            </q-step>
+            <!-- ### ACTION_STEPS ### -->
+            <q-step default
+                name="action_steps"
+                :title="$t('action_plan.stepper.action_steps')">
+                <div v-if="reportScoreExists">
+                    <q-tabs color="primary" v-model="selectedTab" align="justify">
+                        <!-- Tabs - notice slot="title" -->
+                        <q-tab slot="title"  :name="score.behavior.id.toString()" :label="$t(score.behavior.name_key)" v-for="(score, index) in reportScore"/>
+
+                        <!-- Targets -->
+                        <q-tab-pane :name="score.behavior.id.toString()" v-for="(score, index) in reportScore">
+                            <q-card class="no-margin" >
+                                <q-card-title>
+                                    {{$t(score.behavior.name_key)}}
+                                </q-card-title>
+                                <q-card-main>
+                                    {{$t(score.behavior.report_text_key)}}
+                                </q-card-main>
+                            </q-card>
+
+                            <div class="q-card no-shadow">
+                                <!-- <q-field :error="$v.action_stepsStep.emphasis.$error"
+                                    :error-label="$v.action_stepsStep.emphasis.$params.required.errorMsg">
+                                    <p>{{ $t('action_plan.action_steps.emphasis.label', { behavior_name: score.behavior.name_key_translated })}}
+                                    </p>
+                                    <q-option-group type="radio"
+                                        v-model="emphasisComputed"
+                                        :options="emphasissSelectOptions"
+                                        :disable="!behaviorEditable"
+                                        v-on:change="$emit('change')" />
+                                </q-field> -->
+                                <q-field>
+                                    <p>{{ $t('action_plan.action_steps.emphasis.label', { behavior_name: score.behavior.name_key_translated })}}
+                                    </p>
+                                    <q-option-group type="radio"
+                                        v-model="emphasisComputed"
+                                        :options="emphasissSelectOptions"
+                                        :disable="!behaviorEditable"
+                                        v-on:change="$emit('change')" />
+                                </q-field>
+                            </div>
+                            <div v-if="emphasisExists" class="row q-card no-shadow">
+                                <q-field class="col-6">
+                                    <q-select multiple
+                                        ref="actionStepSelect"
+                                        :display-value="$t('action_plan.action_steps.picker.label')"
+                                        v-model="action_stepsStep.data.find(as => as.behaviorId == selectedTab).action_steps"
+                                        :options="action_stepsSelectOptions"
+                                        @focus="onActionStepSelectFocus"
+                                        v-on:change="action_stepsChange" />
+                                </q-field>
+                                <q-btn flat
+                                    class="self-center"
+                                    v-on:click="$refs.createActionStepModal.open()">
+                                    {{$t('action_plan.action_steps.picker.create')}}
+                                </q-btn>
+                            </div>
+                            <q-card v-for="(plan_action_steps,index) in planActionSteps">
+                                <!-- <pre>{{action_step}}</pre> -->
+                                <q-card-title v-if="plan_action_steps.name">
+                                    {{ plan_action_steps.name }}
+                                </q-card-title>
+                                <q-card-separator v-if="plan_action_steps.name" />
+                                <q-card-main>
+                                    {{ plan_action_steps.description }}
+                                </q-card-main>
+                                <q-card-separator />
+                                <q-card-actions>
+                                    <!-- <q-field icon="today"
+                                        class="col text-primary"
+                                        :error="$v.action_stepsStep.action_steps[index].due_at.$error"
+                                        :error-label="$v.action_stepsStep.action_steps[index].due_at | firstError">
+                                        <q-datetime color="primary"
+                                            :placeholder="$t('action_plan.set_due_at.placeholder')"
+                                            format="MMM D, YYYY"
+                                            no-clear
+                                            type="date"
+                                            :min="action_stepsStep.minDate"
+                                            :max="action_stepsStep.maxDate"
+                                            v-model="plan_action_steps.due_at"
+                                            v-on:change="$emit('change')" />
+                                    </q-field> -->
+                                    <q-field icon="today"
+                                        class="col text-primary"
+                                    >
+                                        <q-datetime color="primary"
+                                            :placeholder="$t('action_plan.set_due_at.placeholder')"
+                                            format="MMM D, YYYY"
+                                            no-clear
+                                            type="date"
+                                            :min="action_stepsStep.minDate"
+                                            :max="action_stepsStep.maxDate"
+                                            v-model="plan_action_steps.due_at.iso8601"
+                                            v-on:change="$emit('change')" />
+                                    </q-field>
+                                    
+                                    <div style="flex:1 1 auto;"></div>
+                                    <q-field class="col mark-complete text-primary q-btn-standard">
+                                        <q-checkbox v-model="plan_action_steps.complete"
+                                            :label="$t('action_plan.action_step.complete')"
+                                            v-on:change="$emit('change')"
+                                            class="pull-right" />
+                                    </q-field>
+                                </q-card-actions>
+                            </q-card> 
+                        </q-tab-pane>
+                    </q-tabs>
+                </div>
+                <!-- <q-card class="no-margin"
+                    v-if="behaviorsStep.behavior_id">
+                    <q-card-title>
+                        {{$t(behavior.name_key)}}
+                    </q-card-title>
+                    <q-card-main>
+                        {{$t(behavior.report_text_key)}}
+                    </q-card-main>
+                </q-card> -->
+                <!-- <div class="q-card no-shadow">
+                    <q-field :error="$v.action_stepsStep.emphasis.$error"
+                        :error-label="$v.action_stepsStep.emphasis.$params.required.errorMsg">
+                        <p v-if="behavior">{{ $t('action_plan.action_steps.emphasis.label', { behavior_name: behavior.name_key_translated })}}
+                        </p>
+                        <q-option-group type="radio"
+                            v-model="emphasisComputed"
+                            :options="emphasissSelectOptions"
+                            :disable="!behaviorEditable"
+                            v-on:change="$emit('change')" />
+                    </q-field>
+                </div> -->
+                <!-- <div v-if="action_stepsStep.emphasis !== null"
+                    class="row q-card no-shadow">
+                    <q-field class="col-6"
+                        :error="$v.action_stepsStep.action_steps | errorsFromMyValidators"
+                        :error-label="$v.action_stepsStep.action_steps | firstError">
+                        <q-select multiple
+                            ref="actionStepSelect"
+                            :display-value="$t('action_plan.action_steps.picker.label')"
+                            v-model="action_stepsStep.action_steps"
+                            :options="action_stepsSelectOptions"
+                            @focus="onActionStepSelectFocus"
+                            v-on:change="action_stepsChange" />
+                    </q-field>
+                    <div class="col"></div>
+                    <div>
+
+                    </div>
+                    <q-btn flat
+                        class="self-center"
+                        v-on:click="$refs.createActionStepModal.open()">
+                        {{$t('action_plan.action_steps.picker.create')}}
+                    </q-btn>
+                </div> -->
+
+                
+                <q-stepper-navigation>
+                    <q-btn flat
+                        v-on:click="action_stepsPreviousStep">
+                        {{ $t('global.cta.back') }}
+                    </q-btn>
+                    <div style="flex:1 1 auto;"></div>
+                    <q-btn v-if="mode === 'create'"
+                        loader
+                        v-on:click="saveAndFinishLater">
+                        <q-spinner slot="loading"
+                            class="on-left"></q-spinner>
+                        <span slot="loading">{{ $t('action_plan.cta.save_and_finish_later') }}</span> {{ $t('action_plan.cta.save_and_finish_later') }}
+                    </q-btn>
+                    <q-btn color="primary"
+                        v-on:click="action_stepsNextStep">
+                        {{ $t('global.cta.continue') }}
+                    </q-btn>
+                </q-stepper-navigation>
+                <q-modal ref="createActionStepModal"
+                    :content-css="{minWidth: '80vw'}"
+                    position="top"
+                    noBackdropDismiss
+                    noEscDismiss
+                    v-on:open="onOpenEditActionStep">
+                    <edit-action-step ref="editActionStep"
+                        :tempID="tempID"
+                        :actionPlanID="id"
+                        :emphasis="action_stepsStep.emphasis"
+                        :behavior-id="behaviorsStep.behavior_id"
+                        v-on:action-step-save-successful="updateActionSteps"
+                        v-on:saved="$refs.createActionStepModal.close()"
+                        v-on:cancel="$refs.createActionStepModal.close()">
+
+                    </edit-action-step>
+                </q-modal>
+            </q-step>
+            <!-- ### GOALS ### -->
+            <q-step default
+                name="goals"
+                :title="$t('action_plan.stepper.goals')">
+                <q-card class="no-margin"
+                    v-if="behaviorsStep.behavior_id">
+                    <q-card-title>
+                        {{$t(behavior.name_key)}}
+                    </q-card-title>
+                    <q-card-main>
+                        {{$t(behavior.report_text_key)}}
+                    </q-card-main>
+                </q-card>
+                <p class="goals-step-label">{{$t('action_plan.goals.goal.help_text')}}</p>
+                <q-field :error="$v.goalsStep.goals.$error"
+                    :error-label="$v.goalsStep.goals  | firstError"
+                    :count="config.max_char_length">
+                    <q-input type="textarea"
+                        autofocus
+                        :min-rows="1"
+                        v-model="goalsStep.goals"
+                        :max-length="config.max_char_length"
+                        v-on:change="$emit('change')"
+                        v-on:input="$emit('change')" />
+                </q-field>
+                <p class="goals-step-label">{{$t('action_plan.goals.constituents.help_text')}}</p>
+                <q-field :error="$v.goalsStep.key_constituents.$error"
+                    :error-label="$v.goalsStep.key_constituents  | firstError"
+                    :count="config.max_char_length">
+                    <q-input type="textarea"
+                        :min-rows="1"
+                        v-model="goalsStep.key_constituents"
+                        :max-length="config.max_char_length"
+                        v-on:change="$emit('change')"
+                        v-on:input="$emit('change')" />
+                </q-field>
+                <p class="goals-step-label">{{$t('action_plan.goals.benefits.help_text')}}</p>
+                <q-field :error="$v.goalsStep.benefits.$error"
+                    :error-label="$v.goalsStep.benefits  | firstError"
+                    :count="config.max_char_length">
+                    <q-input type="textarea"
+                        :min-rows="1"
+                        v-model="goalsStep.benefits"
+                        :max-length="config.max_char_length"
+                        v-on:change="$emit('change')"
+                        v-on:input="$emit('change')" />
+                </q-field>
+                <p class="goals-step-label">{{$t('action_plan.goals.risks.help_text')}}</p>
+                <q-field :error="$v.goalsStep.risks.$error"
+                    :error-label="$v.goalsStep.risks  | firstError"
+                    :count="config.max_char_length">
+                    <q-input type="textarea"
+                        :min-rows="1"
+                        v-model="goalsStep.risks"
+                        :max-length="config.max_char_length"
+                        v-on:change="$emit('change')"
+                        v-on:input="$emit('change')" />
+                </q-field>
+                <p class="goals-step-label">{{$t('action_plan.goals.obstacles.help_text')}}</p>
+                <q-field :error="$v.goalsStep.obstacles.$error"
+                    :error-label="$v.goalsStep.obstacles  | firstError"
+                    :count="config.max_char_length">
+                    <q-input type="textarea"
+                        :min-rows="1"
+                        v-model="goalsStep.obstacles"
+                        :max-length="config.max_char_length"
+                        v-on:change="$emit('change')"
+                        v-on:input="$emit('change')" />
+                </q-field>
+                <p class="goals-step-label">{{$t('action_plan.goals.resources.help_text')}}</p>
+                <q-field :error="$v.goalsStep.resources.$error"
+                    :error-label="$v.goalsStep.resources  | firstError"
+                    :count="config.max_char_length">
+                    <q-input type="textarea"
+                        :min-rows="1"
+                        v-model="goalsStep.resources"
+                        :max-length="config.max_char_length"
+                        v-on:change="$emit('change')"
+                        v-on:input="$emit('change')" />
+                </q-field>
+                
+                <!-- <q-field 
+                    :count="config.max_char_length">
+                    <q-input type="textarea"
+                        autofocus
+                        :min-rows="1"
+                        v-model="goalsStep.goals"
+                        :max-length="config.max_char_length"
+                        v-on:change="$emit('change')"
+                        v-on:input="$emit('change')" />
+                </q-field>
+                <p class="goals-step-label">{{$t('action_plan.goals.constituents.help_text')}}</p>
+                <q-field 
+                    :count="config.max_char_length">
+                    <q-input type="textarea"
+                        :min-rows="1"
+                        v-model="goalsStep.key_constituents"
+                        :max-length="config.max_char_length"
+                        v-on:change="$emit('change')"
+                        v-on:input="$emit('change')" />
+                </q-field>
+                <p class="goals-step-label">{{$t('action_plan.goals.benefits.help_text')}}</p>
+                <q-field 
+                    :count="config.max_char_length">
+                    <q-input type="textarea"
+                        :min-rows="1"
+                        v-model="goalsStep.benefits"
+                        :max-length="config.max_char_length"
+                        v-on:change="$emit('change')"
+                        v-on:input="$emit('change')" />
+                </q-field>
+                <p class="goals-step-label">{{$t('action_plan.goals.risks.help_text')}}</p>
+                <q-field 
+                    :count="config.max_char_length">
+                    <q-input type="textarea"
+                        :min-rows="1"
+                        v-model="goalsStep.risks"
+                        :max-length="config.max_char_length"
+                        v-on:change="$emit('change')"
+                        v-on:input="$emit('change')" />
+                </q-field>
+                <p class="goals-step-label">{{$t('action_plan.goals.obstacles.help_text')}}</p>
+                <q-field 
+                    :count="config.max_char_length">
+                    <q-input type="textarea"
+                        :min-rows="1"
+                        v-model="goalsStep.obstacles"
+                        :max-length="config.max_char_length"
+                        v-on:change="$emit('change')"
+                        v-on:input="$emit('change')" />
+                </q-field>
+                <p class="goals-step-label">{{$t('action_plan.goals.resources.help_text')}}</p>
+                <q-field 
+                    :count="config.max_char_length">
+                    <q-input type="textarea"
+                        :min-rows="1"
+                        v-model="goalsStep.resources"
+                        :max-length="config.max_char_length"
+                        v-on:change="$emit('change')"
+                        v-on:input="$emit('change')" />
+                </q-field> -->
+                <q-stepper-navigation>
+                    <q-btn flat
+                        v-on:click="goals_stepsPreviousStep">
+                        {{ $t('global.cta.back') }}
+                    </q-btn>
+                    <div style="flex:1 1 auto;"></div>
+                    <q-btn v-if="mode === 'create'"
+                        loader
+                        v-on:click="saveAndFinishLater">
+                        <q-spinner slot="loading"
+                            class="on-left"></q-spinner>
+                        <span slot="loading">{{ $t('action_plan.cta.save_and_finish_later') }}</span> {{ $t('action_plan.cta.save_and_finish_later') }}
+                    </q-btn>
+                    <q-btn color="primary"
+                        v-on:click="goals_stepsNextStep">
+                        {{ $t('global.cta.continue') }}
+                    </q-btn>
+                </q-stepper-navigation>
+            </q-step>
+            <!-- ### REMINDERS ### -->
+            <q-step default
+                name="reminders"
+                :title="$t('action_plan.stepper.reminders')">
+                <q-card>
+                    <q-card-main>
+                        <div class="row">
+                            <h5>{{$t('action_plan.reminders.start_end.label')}}</h5>
+                        </div>
+                        <div class="row">
+                            <!-- Date Range -->
+                            <q-field :error="$v.remindersStep.dateRange.from.$error"
+                                :error-label="$v.remindersStep.dateRange.from | firstError"
+                                icon="today"
+                                class="col-4">
+
+                                <q-datetime type="date"
+                                    format="MMM D, YYYY"
+                                    :placeholder="$t('action_plan.reminders.start_end.start.label')"
+                                    no-clear
+                                    v-model="remindersStep.dateRange.from"
+                                    :min="remindersStep.dateRangeMin"
+                                    :max="remindersStep.dateRangeMax"
+                                    v-on:change="$emit('change')" />
+
+                            </q-field>
+                            <q-field :error="$v.remindersStep.dateRange.to.$error"
+                                :error-label="$v.remindersStep.dateRange.to  | firstError"
+                                icon="today"
+                                class="col-4">
+                                <q-datetime type="date"
+                                    format="MMM D, YYYY"
+                                    :placeholder="$t('action_plan.reminders.start_end.end.label')"
+                                    no-clear
+                                    v-model="remindersStep.dateRange.to"
+                                    :min="remindersStep.dateRangeMin"
+                                    :max="remindersStep.dateRangeMax"
+                                    v-on:change="$emit('change')" />
+                            </q-field>
+                            <!-- <q-field 
+                                icon="today"
+                                class="col-4">
+
+                                <q-datetime type="date"
+                                    format="MMM D, YYYY"
+                                    :placeholder="$t('action_plan.reminders.start_end.start.label')"
+                                    no-clear
+                                    v-model="remindersStep.dateRange.from"
+                                    :min="remindersStep.dateRangeMin"
+                                    :max="remindersStep.dateRangeMax"
+                                    v-on:change="$emit('change')" />
+
+                            </q-field>
+                            <q-field 
+                                icon="today"
+                                class="col-4">
+                                <q-datetime type="date"
+                                    format="MMM D, YYYY"
+                                    :placeholder="$t('action_plan.reminders.start_end.end.label')"
+                                    no-clear
+                                    v-model="remindersStep.dateRange.to"
+                                    :min="remindersStep.dateRangeMin"
+                                    :max="remindersStep.dateRangeMax"
+                                    v-on:change="$emit('change')" />
+                            </q-field> -->
+
+                            <div style="flex:1 1 50%"></div>
+                        </div>
+                        <!-- <div class="row">
+                            <h5>{{$t('action_plan.reminders.reminders_message')}}</h5>
+                        </div> -->
+                        <br/>
+                        <div class="row reminders">
+                            <q-field class="col">
+                                <q-checkbox v-model="remindersStep.action_plan_reminders.review.enabled"
+                                    :label="$t('action_plan.reminders.review')"
+                                    v-on:change="$emit('change')" />
+                            </q-field>
+                            <reminder-interval-picker :date-error="$v.remindersStep.action_plan_reminders.review.$error"
+                                :date-error-label="$v.remindersStep.action_plan_reminders.review | firstError"
+                                :date-placeholder="$t('action_plan.reminders.action_steps.start_data')"
+                                :date-min-date="getReminderMin()"
+                                :date-max-date="remindersStep.dateRange.to"
+                                v-on:change="$emit('change')"
+                                v-on:reset="$v.remindersStep.action_plan_reminders.pulse_surveys.$reset()"
+                                v-if="remindersStep.action_plan_reminders.review.enabled"
+                                v-model="remindersStep.action_plan_reminders.review" />
+                        </div>
+                        <div class="row reminders">
+                            <q-field class="col">
+                                <q-checkbox v-model="remindersStep.action_plan_reminders.pulse_surveys.enabled"
+                                    :label="$t('action_plan.reminders.feedback')"
+                                    v-on:change="$emit('change')" />
+                            </q-field>
+                            <reminder-interval-picker :date-error="$v.remindersStep.action_plan_reminders.pulse_surveys.$error"
+                                :date-error-label="$v.remindersStep.action_plan_reminders.pulse_surveys | firstError"
+                                :date-placeholder="$t('action_plan.reminders.action_steps.start_data')"
+                                :date-min-date="getReminderMin()"
+                                :date-max-date="remindersStep.dateRange.to"
+                                v-on:change="$emit('change')"
+                                v-on:reset="$v.remindersStep.action_plan_reminders.pulse_surveys.$reset()"
+                                v-if="remindersStep.action_plan_reminders.pulse_surveys.enabled"
+                                v-model="remindersStep.action_plan_reminders.pulse_surveys" />
+                        </div>
+                        <div class="row reminders">
+                            <q-field class="col">
+                                <q-checkbox v-model="remindersStep.action_plan_reminders.action_step.enabled"
+                                    :label="$t('action_plan.reminders.reminders_message')" />
+                            </q-field>
+                        </div>
+                        <q-card v-if="remindersStep.action_plan_reminders.action_step.enabled"
+                            v-for="(action_step, index) in action_stepsStep.action_steps">
+                            <q-card-title v-if="action_step.name">
+                                {{ action_step.name }}
+                            </q-card-title>
+                            <q-card-separator v-if="action_step.name" />
+                            <q-card-main>
+                                {{ action_step.description }}
+                            </q-card-main>
+                            <q-card-separator />
+                            <q-card-actions>
+                                <q-field icon="today"
+                                    class="show-date col">
+                                    <span>{{formatDate(action_step.due_at)}}</span>
+                                </q-field>
+                                <q-field class="col">
+                                    <reminder-interval-picker :date-error="$v.remindersStep.action_plan_reminders.action_step.action_steps[index].$error"
+                                        :date-error-label="$v.remindersStep.action_plan_reminders.action_step.action_steps[index] | firstError"
+                                        :date-placeholder="$t('action_plan.reminders.action_steps.start_data')"
+                                        :date-min-date="getReminderMin()"
+                                        :date-max-date="remindersStep.dateRange.to"
+                                        :id="action_step.id"
+                                        v-on:change="$emit('change')"
+                                        v-on:reset="$v.remindersStep.action_plan_reminders.action_step.action_steps[index].$reset()"
+                                        v-if="remindersStep.action_plan_reminders.action_step.enabled"
+                                        v-model="remindersStep.action_plan_reminders.action_step.action_steps[index]" />
+                                </q-field>
+                            </q-card-actions>
+                        </q-card>
+                    </q-card-main>
+                </q-card>
+                <q-stepper-navigation>
+                    <q-btn flat
+                        v-on:click="$refs.stepper.previous()">
+                        {{ $t('global.cta.back') }}
+                    </q-btn>
+                    <div style="flex:1 1 auto;"></div>
+                    <q-btn v-if="mode === 'create'"
+                        loader
+                        v-on:click="saveAndFinishLater">
+                        <q-spinner slot="loading"
+                            class="on-left"></q-spinner>
+                        <span slot="loading">{{ $t('action_plan.cta.save_and_finish_later') }}</span> {{ $t('action_plan.cta.save_and_finish_later') }}
+                    </q-btn>
+                    <q-btn color="primary"
+                        v-on:click="saveActionPlan">
+                        {{ $t('global.cta.continue') }}
+                    </q-btn>
+                </q-stepper-navigation>
+            </q-step>
+            <q-inner-loading :visible="inFlight">
+                <q-spinner size="50px"
+                    color="primary"></q-spinner>
+            </q-inner-loading>
+        </q-stepper>
+    </div>
+</div>

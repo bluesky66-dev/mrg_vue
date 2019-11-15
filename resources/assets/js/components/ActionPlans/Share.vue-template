@@ -1,0 +1,76 @@
+<div id="momentum-action-plan-share"
+    :class="style['momentum-action-plan-share']">
+    <h3>{{ $t('action_plan.share.title') }}</h3>
+    <q-card class="with-hover">
+        <div class="hover-over-card-top-right">
+            <q-btn v-on:click.prevent="openHelp"
+                icon="help"
+                class=""
+                color="positive"
+                flat>
+                {{ $t('global.nav.get_help') }}
+            </q-btn>
+        </div>
+        <q-stepper ref="stepper">
+            <q-step default
+                :title="$t('action_plan.share_stepper.preview')"
+                active-icon="description">
+                <share-preview />
+                <div :class="style['step-buttons']">
+                    <q-btn big
+                        flat
+                        v-on:click="back">{{ $t('global.cta.back') }}</q-btn>
+                    <q-btn big
+                        color="primary"
+                        @click="$refs.stepper.next()">{{ $t('global.cta.continue') }}</q-btn>
+                </div>
+            </q-step>
+            <q-step :title="$t('action_plan.share_stepper.send')"
+                active-icon="email">
+                <!--<p class="caption">{{ $t('action_plan.send.picker.label') }}</p>-->
+                <div class="row">
+                    <q-field class="col-7"
+                        :error="$v.observers_selected.$error"
+                        :error-label="observers_selectedErrorMsg">
+                        <q-select multiple
+                            chips
+                            color="primary"
+                            v-model="observers_selected"
+                            :float-label="$t('action_plan.send.picker.label')"
+                            :options="observerOptions"></q-select>
+                    </q-field>
+                    <div class="col"></div>
+                    <div class="col-4 column justify-center">
+                        <q-btn color="primary"
+                            icon="person_add"
+                            @click="addObserver">
+                            {{ $t('global.cta.add_recipient') }}
+                        </q-btn>
+                    </div>
+                </div>
+                <div :class="style['step-buttons']">
+                    <q-btn big
+                        flat
+                        @click="$refs.stepper.previous()">{{ $t('global.cta.back') }}</q-btn>
+                    <q-btn big
+                        color="primary"
+                        v-on:click="save">{{ $t('action_plan.share_stepper.send') }}</q-btn>
+                </div>
+            </q-step>
+        </q-stepper>
+        <q-inner-loading :visible="inFlight">
+            <q-spinner size="50px"
+                color="primary" />
+        </q-inner-loading>
+    </q-card>
+    <q-modal ref="editObserverModal"
+        position="top"
+        noBackdropDismiss
+        noEscDismiss>
+        <edit-observer ref="editObserver"
+            :observerTypes="observer_types"
+            :cultures="cultures"
+            @successful="editedObserver"
+            @cancel="$refs.editObserverModal.close()" />
+    </q-modal>
+</div>

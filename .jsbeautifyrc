@@ -1,0 +1,13 @@
+{
+  "all": {
+    "indent_size": 2
+  },
+  "html": {
+    "indent_size": 4,
+    "wrap_attributes": "force",
+    "wrap_attributes_indent_size": 4
+  },
+  "js": {
+    "indent_size": 2
+  }
+}
